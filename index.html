@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>توشان‌ورس | Tooshan Verse </title>
+<link rel="icon" href="favicon.png" type="image/x-icon" />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-1:#070812;
+  --bg-2:#081229;
+  --accent:#19a7ff;
+  --accent-2:#9be3ff;
+  --muted:rgba(255,255,255,0.08);
+  --card-bg:rgba(10,12,18,0.6);
+  --glass:rgba(255,255,255,0.04);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:'Vazirmatn', Tahoma, sans-serif;
+  background: linear-gradient(180deg,var(--bg-1), var(--bg-2));
+  color:#e9f6ff;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+a{color:inherit;text-decoration:none}
+header{
+  position:fixed;
+  top:16px;
+  left:16px;
+  right:16px;
+  z-index:40;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.logo{font-weight:700;font-size:1rem;letter-spacing:0.6px}
+.subnav{display:flex;gap:14px;align-items:center}
+.subnav a{
+  background:var(--glass);
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  font-size:0.95rem
+}
+
+/* HERO */
+.hero{
+  position:relative;
+  min-height:78vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:80px 24px;
+  overflow:hidden;
+}
+.hero-bg{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background-size:cover;
+  background-position:center center;
+  filter:brightness(0.45) saturate(1.05) contrast(1.05);
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  inset:-20% -40%;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(120deg, rgba(25,167,255,0.06), rgba(155,227,255,0.06) 30%, rgba(255,255,255,0.02));
+  transform:rotate(10deg);
+  mix-blend-mode:screen;
+  animation:slidelight 12s linear infinite;
+}
+@keyframes slidelight{
+  0%{transform:translateX(-30%) rotate(10deg)}
+  50%{transform:translateX(30%) rotate(10deg)}
+  100%{transform:translateX(-30%) rotate(10deg)}
+}
+.hero-inner{
+  position:relative;
+  z-index:5;
+  display:flex;
+  gap:36px;
+  align-items:center;
+  max-width:1200px;
+  width:100%;
+}
+.portrait{
+  flex:0 0 320px;
+  height:420px;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(25,167,255,0.12);
+  box-shadow:0 30px 80px rgba(2,6,23,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
+.portrait img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  filter:drop-shadow(0 10px 30px rgba(0,0,0,0.6))
+}
+.hero-meta{flex:1;}
+.hero-meta h1{
+  font-family:'Orbitron',sans-serif;
+  font-size:3.6rem;
+  margin:0 0 6px;
+  color:var(--accent);
+  text-shadow:0 6px 30px rgba(25,167,255,0.08)
+}
+.hero-meta h2{
+  margin:0;
+  color:var(--accent-2);
+  opacity:0.85;
+  font-weight:600
+}
+.tagline{
+  margin-top:14px;
+  font-size:1.05rem;
+  color:rgba(235,245,255,0.9);
+  max-width:72%
+}
+.cta-row{
+  margin-top:26px;
+  display:flex;
+  gap:12px;
+  align-items:center
+}
+.btn{
+  display:inline-block;
+  padding:12px 18px;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,0.06);
+  transition:all .25s ease
+}
+.btn.primary{
+  background:linear-gradient(90deg,var(--accent),#1fb6ff);
+  color:#00101b;
+  box-shadow:0 8px 30px rgba(25,167,255,0.12)
+}
+.btn.ghost{
+  background:transparent;
+  color:#e6f7ff;
+  border:1px solid rgba(255,255,255,0.06)
+}
+.btn:hover{transform:translateY(-3px)}
+
+/* info cards */
+.cards-container{
+  display:flex;
+  gap:18px;
+  padding-bottom:12px;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+}
+.cards-container::-webkit-scrollbar{
+  height:8px;
+}
+.cards-container::-webkit-scrollbar-thumb{
+  background: var(--accent);
+  border-radius:4px;
+}
+.card{
+  flex:0 0 280px;
+  background:var(--card-bg);
+  backdrop-filter:blur(6px);
+  padding:18px;
+  border-radius:12px;
+  border:1px solid rgba(155,227,255,0.06);
+  box-shadow:0 10px 30px rgba(2,6,23,0.5);
+  transition: transform 0.28s ease, box-shadow 0.28s ease, opacity 0.5s ease;
+  opacity:0.6;
+}
+.card:hover,.card.active{
+  transform:translateY(-8px);
+  box-shadow:0 18px 60px rgba(25,167,255,0.09);
+  opacity:1;
+}
+
+.powers{
+  margin-top:48px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px
+}
+.power{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:18px;
+  border-radius:12px;
+  text-align:center;
+  border:1px solid rgba(25,167,255,0.06);
+  transition:transform .28s ease,box-shadow .28s ease
+}
+.power:hover{
+  transform:translateY(-8px);
+  box-shadow:0 18px 60px rgba(25,167,255,0.09)
+}
+.power svg{
+  width:48px;
+  height:48px;
+  margin-bottom:10px;
+  filter:drop-shadow(0 6px 18px rgba(25,167,255,0.08))
+}
+.power h4{margin:6px 0 0;font-size:1rem}
+.power p{font-size:0.95rem;color:rgba(235,245,255,0.85)}
+
+footer{
+  margin-top:60px;
+  padding:40px 20px;
+  color:rgba(200,220,255,0.6);
+  text-align:center
+}
+
+@media (max-width:1000px){
+  .hero-inner{flex-direction:column-reverse;align-items:center}
+  .portrait{width:320px;height:360px}
+  .powers{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:640px){
+  .portrait{width:220px;height:300px}
+  .hero-meta h1{font-size:2.1rem}
+  .hero-meta h2{font-size:1rem}
+  .powers{grid-template-columns:1fr}
+}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(14px);transition:all .6s cubic-bezier(.2,.9,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* overlay & side nav */
+.overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
+  opacity:0;visibility:hidden;transition:opacity 0.35s ease;z-index:39;
+}
+.overlay.active{opacity:1;visibility:visible;}
+
+.side-nav{
+  position:fixed;top:0;left:-280px;width:280px;height:100%;
+  background:linear-gradient(180deg,var(--bg-2), var(--bg-1));
+  padding:40px 20px;display:flex;flex-direction:column;gap:24px;
+  transition:left 0.35s cubic-bezier(0.25,0.8,0.25,1);
+  z-index:40;touch-action: pan-y;
+}
+.side-nav.active{left:0;}
+.side-nav a{
+  color:var(--accent-2);text-decoration:none;font-weight:600;
+  font-size:1.05rem;padding:10px 12px;border-radius:8px;
+  transition:background 0.25s ease;
+}
+.side-nav a:hover{background:rgba(25,167,255,0.12);}
+
+/* hamburger */
+.hamburger{
+  position:fixed;top:16px;left:16px;z-index:41;
+  width:36px;height:36px;display:flex;flex-direction:column;justify-content:space-around;
+  cursor:pointer;
+}
+.hamburger span{
+  display:block;height:4px;width:100%;
+  background:var(--accent);
+  border-radius:2px;transition:all 0.3s ease;
+}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(6px,6px);}
+.hamburger.active span:nth-child(2){opacity:0;}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px);}
+
+  /*کادر معرفی*/
+  .about-box{
+  max-width:900px;
+  margin:80px auto;
+  padding:50px 40px;
+  background:linear-gradient(145deg, rgba(15,25,35,0.9), rgba(10,15,25,0.95));
+  border:1px solid rgba(0,255,255,0.2);
+  border-radius:20px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 0 40px rgba(0,255,255,0.08);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.about-box::before{
+  content:"";
+  position:absolute;
+  top:-50%;
+  left:-50%;
+  width:200%;
+  height:200%;
+  background:radial-gradient(circle at center, rgba(0,255,255,0.08), transparent 60%);
+  animation:rotateGlow 12s linear infinite;
+}
+
+@keyframes rotateGlow{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+.about-box h2{
+  color:var(--accent);
+  font-size:2.2rem;
+  margin-bottom:25px;
+}
+
+.about-box p{
+  color:rgba(235,245,255,0.85);
+  line-height:2.2;
+  font-size:1.1rem;
+}
+/*پایان کادر معرفی*/  
+
+  /*اخبار*/
+  .news-board{
+  width:90%;
+  max-width:1100px;
+  margin:80px auto;
+  padding:20px;
+  background:rgba(10,20,30,0.95);
+  border:1px solid rgba(0,255,255,0.25);
+  border-radius:15px;
+  overflow:hidden;
+  position:relative;
+}
+
+.news-track{
+  display:flex;
+  gap:80px;
+  white-space:nowrap;
+  animation:scrollNews 25s linear infinite;
+}
+
+.news-item{
+  font-size:1.1rem;
+  color:var(--accent-2);
+}
+
+@keyframes scrollNews{
+  from { transform:translateX(100%); }
+  to { transform:translateX(-100%); }
+}
+  /*پایان اخبار*/
+</style>
+</head>
+<body>
+
+<div class="hamburger" id="hamburgerBtn">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+<div class="overlay" id="overlay"></div>
+<nav class="side-nav" id="sideNav">
+  <a href="index.html">خانه</a>
+  <a href="phase.html">فاز ها</a>
+  <a href="characters.html">شخصیت ها</a>
+</nav>
+
+<header>
+  <div class="logo">توشان‌ورس</div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="hero-bg" style="background-image:url('toshan-hero.jpg')"></div>
+  <div class="hero-inner reveal">
+    <div class="portrait">
+      <img src="photo/tooshan.png" alt="تصویر توشان‌ورس">
+    </div>
+    <div class="hero-meta">
+      <h1>توشان‌ورس</h1>
+      <h2>Tooshanverse</h2>
+      <p class="tagline">جهان قهرمانان و ماجراهای حماسی — توشان‌ورس؛ جایی که قهرمانان ایرانی برمی‌خیزند.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="timeline.html">خط زمانی</a>
+        <a class="btn ghost" href="#powers">مشاهده</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <section id="about" class="reveal">
+  <div class="about-box">
+    <h2>توشان‌ورس چیست؟</h2>
+    <p>
+      توشان‌ورس یک جهان داستانی مستقل و علمی–حماسی است که در آن
+      نیروهای پنهان، فناوری‌های فراتر از زمان و اسطوره‌های فراموش‌شده
+      با سرنوشت انسان گره می‌خورند.
+      این جهان بستری برای روایت قهرمانانی است که میان تاریکی و نور،
+      آینده‌ای تازه برای بشر رقم می‌زنند.
+    </p>
+  </div>
+</section>
+
+  <section id="news" class="reveal">
+  <div class="news-board">
+    <div class="news-track" id="newsTrack"></div>
+  </div>
+</section>
+
+<footer class="reveal">© 2025 توشان‌ورس — همهٔ حقوق محفوظ است</footer>
+
+<script>
+// Reveal animation
+const revealEls=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting)e.target.classList.add('in')
+  })
+},{threshold:0.12});
+revealEls.forEach(el=>io.observe(el));
+
+// Infinite auto-scroll cards
+document.querySelectorAll('.cards-container').forEach(container=>{
+  // ❌ این خط باعث تکرار میشه
+  // container.innerHTML += container.innerHTML; 
+  const cards = Array.from(container.querySelectorAll('.card'));
+  container.scrollLeft = container.scrollWidth / 4;
+
+  let speed = 0.3; // کنترل سرعت اسکرول
+  function scrollCards(){
+    container.scrollLeft += speed;
+    const halfWidth = container.scrollWidth / 2;
+    if(container.scrollLeft >= halfWidth) container.scrollLeft -= halfWidth;
+    requestAnimationFrame(scrollCards);
+  }
+  scrollCards();
+
+  // Drag & touch support
+  let isDragging=false, startX=0, scrollStart=0;
+  container.addEventListener('mousedown', e=>{ isDragging=true; startX=e.pageX-container.offsetLeft; scrollStart=container.scrollLeft; container.style.scrollBehavior='auto'; });
+  container.addEventListener('mouseup', ()=>{ isDragging=false; });
+  container.addEventListener('mouseleave', ()=>{ isDragging=false; });
+  container.addEventListener('mousemove', e=>{
+    if(!isDragging) return;
+    const x=e.pageX-container.offsetLeft;
+    container.scrollLeft = scrollStart - (x-startX);
+  });
+
+  container.addEventListener('touchstart', e=>{ isDragging=true; startX=e.touches[0].pageX-container.offsetLeft; scrollStart=container.scrollLeft; });
+  container.addEventListener('touchend', ()=>{ isDragging=false; });
+  container.addEventListener('touchmove', e=>{
+    if(!isDragging) return;
+    const x=e.touches[0].pageX-container.offsetLeft;
+    container.scrollLeft = scrollStart - (x-startX);
+  });
+});
+
+// Hamburger menu
+const hamburger = document.getElementById('hamburgerBtn');
+const sideNav = document.getElementById('sideNav');
+const overlay = document.getElementById('overlay');
+
+function openMenu(){
+  hamburger.classList.add('active');
+  sideNav.classList.add('active');
+  overlay.classList.add('active');
+}
+function closeMenu(){
+  hamburger.classList.remove('active');
+  sideNav.classList.remove('active');
+  overlay.classList.remove('active');
+}
+const sideNavLinks = document.querySelectorAll('.side-nav a');
+sideNavLinks.forEach(link=>link.addEventListener('click',closeMenu));
+hamburger.addEventListener('click', ()=>{ sideNav.classList.contains('active')?closeMenu():openMenu(); });
+overlay.addEventListener('click', closeMenu);
+
+// swipe support
+let startTouchX=0, currentX=0, touching=false;
+sideNav.addEventListener('touchstart', e=>{ touching=true; startTouchX=e.touches[0].clientX; });
+sideNav.addEventListener('touchmove', e=>{
+  if(!touching) return;
+  currentX = e.touches[0].clientX;
+  const deltaX = currentX-startTouchX;
+  if(deltaX<0){ sideNav.style.left=Math.max(-280,deltaX)+'px'; overlay.style.opacity=1+deltaX/280; }
+});
+sideNav.addEventListener('touchend', e=>{
+  touching=false;
+  if(currentX-startTouchX<-80) closeMenu();
+  else sideNav.style.left='0px';
+});
+
+  const sheetURL = "https://docs.google.com/spreadsheets/d/1En847pG6Th8Ihu7pAdEBLohzbjkDZepqO1Ur8oKPtKo/edit?usp=sharing";
+
+async function loadNews() {
+  try {
+    const res = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSDe1H_dgMBbVCCvAThsg2mhENWNKWQQ2XI8_JMvNLEE8M7oycXggyUZH-rtXnkJ6PKssz1pC_LUe7n/gviz/tq?tqx=out:json");
+    const text = await res.text();
+
+    // حذف wrapper google
+    const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}")+1));
+
+    const rows = json.table.rows;
+    const newsTrack = document.getElementById("newsTrack");
+
+    rows.forEach(row => {
+      const content = row.c[1]?.v; // ستون B
+      if(content) {
+        const div = document.createElement("div");
+        div.className = "news-item";
+        div.textContent = "✦ " + content;
+        newsTrack.appendChild(div);
+      }
+    });
+
+  } catch(err) {
+    document.getElementById("newsTrack").textContent = "خطا در دریافت اخبار";
+    console.error(err);
+  }
+}
+
+loadNews();
+  
+</script>
+</body>
+</html>
