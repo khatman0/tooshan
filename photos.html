@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>عکس‌ها | توشان‌ورس</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: linear-gradient(135deg, #3e0f0f, #5c1a1a);
+      color: #f0c040;
+      margin: 0;
+      padding: 0;
+      direction: rtl;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header, footer {
+      text-align: center;
+      background-color: #1a1a1a;
+      padding: 30px 20px;
+      flex-shrink: 0;
+      box-shadow: 0 0 15px #ff990033;
+    }
+    h1, h2 {
+      color: #ff9900;
+      margin: 0 0 10px 0;
+    }
+    section {
+      padding: 20px;
+      max-width: 1000px;
+      margin: 20px auto;
+      flex-grow: 1;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .gallery img {
+      width: 250px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ff9900aa;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      object-fit: cover;
+      aspect-ratio: 4 / 3;
+    }
+    .gallery img:hover {
+      transform: scale(1.05);
+    }
+    /* دکمه بازگشت */
+    .back-home {
+      display: inline-block;
+      margin: 20px auto;
+      padding: 12px 25px;
+      background: #ff9900;
+      color: #111;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ff9900aa;
+      transition: background-color 0.3s ease;
+    }
+    .back-home:hover {
+      background-color: #e68a00;
+    }
+    /* لایت‌باکس */
+    #lightboxOverlay {
+      position: fixed;
+      top: 0; left: 0; right:0; bottom:0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #lightboxOverlay.active {
+      display: flex;
+    }
+    #lightboxContent {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 15px;
+      box-shadow: 0 0 30px #ff9900cc;
+      overflow: hidden;
+      background: #2b0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #lightboxImage {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 15px 15px 0 0;
+    }
+    #lightboxCaption {
+      padding: 10px 20px;
+      color: #f0c040;
+      font-size: 18px;
+      text-align: center;
+      user-select: none;
+    }
+    /* دکمه های کنترلی */
+    .lightboxBtn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,153,0,0.8);
+      border: none;
+      color: #111;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 10px 15px;
+      border-radius: 50%;
+      user-select: none;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 10px #ff9900cc;
+    }
+    .lightboxBtn:hover {
+      background: #e68a00;
+    }
+    #prevBtn {
+      left: 10px;
+    }
+    #nextBtn {
+      right: 10px;
+    }
+    #closeBtn {
+      top: 10px;
+      right: 10px;
+      transform: none;
+      padding: 6px 12px;
+      font-size: 24px;
+      border-radius: 10px;
+      position: absolute;
+      cursor: pointer;
+      background: #ff9900cc;
+      color: #111;
+      box-shadow: 0 0 15px #ff9900bb;
+      user-select: none;
+    }
+    #closeBtn:hover {
+      background: #e68a00;
+    }
+    /* ریسپانسیو */
+    @media (max-width: 600px) {
+      .gallery img {
+        width: 90vw;
+        aspect-ratio: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🖼️ عکس‌های توشان‌ورس</h1>
+    <p>نگاهی تصویری به دنیای توشان</p>
+    <a href="index.html" class="back-home" aria-label="بازگشت به خانه">🏠 بازگشت به خانه</a>
+  </header>
+
+  <section>
+    <div class="gallery" role="list" aria-label="گالری عکس‌ها">
+      <img src="images/photo1.jpg" alt="عکس ۱" role="listitem" tabindex="0" />
+      <img src="images/photo2.jpg" alt="عکس ۲" role="listitem" tabindex="0" />
+      <img src="images/photo3.jpg" alt="عکس ۳" role="listitem" tabindex="0" />
+      <!-- عکس‌های بیشتر اینجا اضافه کن -->
+    </div>
+  </section>
+
+  <footer>
+    <p>تمام حقوق متعلق به توشان استودیو © 2025</p>
+  </footer>
+
+  <!-- لایت‌باکس -->
+  <div id="lightboxOverlay" role="dialog" aria-modal="true" aria-labelledby="lightboxCaption" tabindex="-1">
+    <div id="lightboxContent">
+      <button id="closeBtn" aria-label="بستن">×</button>
+      <button id="prevBtn" class="lightboxBtn" aria-label="عکس قبلی">&#10094;</button>
+      <img id="lightboxImage" src="" alt="" />
+      <button id="nextBtn" class="lightboxBtn" aria-label="عکس بعدی">&#10095;</button>
+      <div id="lightboxCaption"></div>
+    </div>
+  </div>
+
+<script>
+  const gallery = document.querySelector('.gallery');
+  const lightboxOverlay = document.getElementById('lightboxOverlay');
+  const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+  const closeBtn = document.getElementById('closeBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  let currentIndex = 0;
+  let images = [];
+
+  function openLightbox(index) {
+    currentIndex = index;
+    updateLightbox();
+    lightboxOverlay.classList.add('active');
+    lightboxOverlay.focus();
+  }
+
+  function closeLightbox() {
+    lightboxOverlay.classList.remove('active');
+  }
+
+  function updateLightbox() {
+    const img = images[currentIndex];
+    lightboxImage.src = img.src;
+    lightboxImage.alt = img.alt;
+    lightboxCaption.textContent = img.alt;
+  }
+
+  function showNext() {
+    currentIndex = (currentIndex + 1) % images.length;
+    updateLightbox();
+  }
+
+  function showPrev() {
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    updateLightbox();
+  }
+
+  // آماده‌سازی آرایه عکس‌ها
+  images = Array.from(gallery.querySelectorAll('img'));
+
+  // باز شدن لایت‌باکس با کلیک روی عکس یا کلید Enter
+  images.forEach((img, index) => {
+    img.addEventListener('click', () => openLightbox(index));
+    img.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openLightbox(index);
+      }
+    });
+  });
+
+  // دکمه‌ها
+  closeBtn.addEventListener('click', closeLightbox);
+  nextBtn.addEventListener('click', showNext);
+  prevBtn.addEventListener('click', showPrev);
+
+  // بستن با Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && lightboxOverlay.classList.contains('active')) {
+      closeLightbox();
+    }
+    // کلیدهای چپ و راست برای عکس بعدی/قبلی
+    if (lightboxOverlay.classList.contains('active')) {
+      if (e.key === 'ArrowRight') showNext();
+      if (e.key === 'ArrowLeft') showPrev();
+    }
+  });
+
+  // جلوگیری از اسکرول صفحه وقتی لایت‌باکس باز است
+  lightboxOverlay.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+</script>
+
+</body>
+</html>
