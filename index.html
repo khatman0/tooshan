@@ -68,10 +68,17 @@ h3{margin:22px 0 6px}
   <div class="list" id="subs"></div>
   <form class="add" id="addSub"><input id="subName" placeholder="درس / موضوع جدید" aria-label="نام موضوع"><button class="btn">افزودن</button></form>
   <div class="tools">
+   <button class="ghost" id="cfgBtn">☁ گوگل شیت</button>
    <button class="ghost" id="theme">🌓 تم</button>
    <button class="ghost" id="exp">⬇ پشتیبان</button>
    <label class="ghost" style="cursor:pointer">⬆ بازیابی<input type="file" id="imp" accept=".json" hidden></label>
   </div>
+  <p class="meta" id="syncSt" aria-live="polite"></p>
+  <form id="cfg" hidden style="display:grid;gap:6px;margin-top:8px">
+   <input class="field" id="cu" placeholder="آدرس Web app (…/exec)" dir="ltr">
+   <input class="field" id="ck" placeholder="رمز" dir="ltr">
+   <button class="btn">اتصال و همگام‌سازی</button>
+  </form>
  </aside>
  <main id="main"></main>
 </div>
@@ -82,7 +89,8 @@ try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catc
 S.open=null;
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({subs:S.subs,sel:S.sel}))}catch(e){}};
+const local=()=>{try{localStorage.setItem(KEY,JSON.stringify({subs:S.subs,sel:S.sel}))}catch(e){}};
+const save=()=>{local();queueSync()};
 const cur=()=>S.subs.find(s=>s.id===S.sel);
 const prog=s=>s.les.length?Math.round(100*s.les.filter(l=>l.done).length/s.les.length):0;
 const fa=n=>String(n).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
@@ -144,8 +152,20 @@ document.getElementById("exp").onclick=()=>{const u=URL.createObjectURL(new Blob
  const a=document.createElement("a");a.href=u;a.download="learning-backup.json";a.click()};
 document.getElementById("imp").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
  r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.subs)){S.subs=d.subs;S.sel=d.sel||d.subs[0]?.id||null;save();render()}}catch(x){}};r.readAsText(f)};
+
+let CFG={};try{CFG=JSON.parse(localStorage.getItem(KEY+"-cfg")||"{}")}catch(e){}
+const st=t=>{document.getElementById("syncSt").textContent=t};let tm;
+function queueSync(){if(!CFG.u)return;clearTimeout(tm);st("⏳ در حال ذخیره...");tm=setTimeout(push,1500)}
+async function push(){try{const r=await fetch(CFG.u,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({key:CFG.k,subs:S.subs})});const j=await r.json();st(j.ok?"☁ در گوگل شیت ذخیره شد":"⚠ "+(j.error||"خطا"))}catch(e){st("⚠ اتصال برقرار نشد")}}
+async function pull(){if(!CFG.u)return;st("⏳ در حال اتصال...");try{const r=await fetch(CFG.u+"?key="+encodeURIComponent(CFG.k));const j=await r.json();
+ if(j.error){st("⚠ رمز اشتباه است");return}
+ if(j.subs&&j.subs.length){S.subs=j.subs;if(!S.subs.find(x=>x.id===S.sel))S.sel=S.subs[0].id;S.open=null;local();render();st("☁ همگام شد")}
+ else if(S.subs.length)await push();else st("☁ وصل شد")}catch(e){st("⚠ اتصال برقرار نشد")}}
+const cf=document.getElementById("cfg");
+document.getElementById("cfgBtn").onclick=()=>{cf.hidden=!cf.hidden;document.getElementById("cu").value=CFG.u||"";document.getElementById("ck").value=CFG.k||""};
+cf.onsubmit=e=>{e.preventDefault();CFG={u:cu.value.trim(),k:ck.value};try{localStorage.setItem(KEY+"-cfg",JSON.stringify(CFG))}catch(x){}cf.hidden=true;pull()};
 if(!S.sel&&S.subs[0])S.sel=S.subs[0].id;
-render();
+render();pull();
 </script>
 </body>
 </html>
