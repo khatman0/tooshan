@@ -310,7 +310,17 @@ function queueSync(){if(!CFG.u)return;clearTimeout(tm);st("⏳ در حال ذخ�
 async function push(){try{const r=await fetch(CFG.u,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({key:CFG.k,subs:S.subs})});const j=await r.json();st(j.ok?"☁ در گوگل شیت ذخیره شد":"⚠ "+(j.error||"خطا"))}catch(e){st("⚠ اتصال برقرار نشد")}}
 async function pull(){if(!CFG.u)return;st("⏳ در حال اتصال...");try{const r=await fetch(CFG.u+"?key="+encodeURIComponent(CFG.k));const j=await r.json();
  if(j.error){st("⚠ رمز اشتباه است");return}
- if(j.subs&&j.subs.length){S.subs=j.subs;if(!S.subs.find(x=>x.id===S.sel))S.sel=S.subs[0].id;S.open=null;local();render();st("☁ همگام شد")}
+ if(j.subs&&j.subs.length){
+  /* گوگل‌شیت ممکنه فیلد توضیح کلمه‌ها (w) رو نگه نداره؛ نسخهٔ محلی رو بهش برمی‌گردونیم */
+  const lw={};S.subs.forEach(s=>(s.les||[]).forEach(l=>{if(l.w&&Object.keys(l.w).length)lw[l.id]=l.w}));
+  let fixed=false;
+  j.subs.forEach(s=>(s.les||[]).forEach(l=>{
+   const loc=lw[l.id];
+   if(loc){const rem=l.w||{};const miss=Object.keys(loc).some(k=>!(k in rem));if(miss){l.w=Object.assign({},loc,rem);fixed=true}}
+  }));
+  S.subs=j.subs;if(!S.subs.find(x=>x.id===S.sel))S.sel=S.subs[0].id;S.open=null;local();render();st("☁ همگام شد");
+  if(fixed)queueSync();
+ }
  else if(S.subs.length)await push();else st("☁ وصل شد")}catch(e){st("⚠ اتصال برقرار نشد")}}
 const cf=document.getElementById("cfg");
 document.getElementById("cfgBtn").onclick=()=>{cf.hidden=!cf.hidden;document.getElementById("cu").value=CFG.u||"";document.getElementById("ck").value=CFG.k||""};
