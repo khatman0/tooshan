@@ -102,11 +102,15 @@ h3{margin:22px 0 6px}
 
 <div class="md" id="md" hidden>
  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="meta" id="mcrumb" hidden></div>
   <h4 id="mt"></h4>
   <div class="mview" id="mvw" hidden></div>
   <textarea id="mx" placeholder="توضیح این کلمه رو بنویس..." hidden></textarea>
+  <p class="hint" id="mhint" hidden></p>
   <div class="row">
+   <button class="ghost" id="mb" hidden>→ برگشت</button>
    <button class="btn" id="ms">ذخیره</button>
+   <button class="ghost" id="mw">🔗 توضیح برای کلمهٔ انتخاب‌شده</button>
    <button class="ghost" id="me" hidden>✏️ ویرایش</button>
    <button class="ghost" id="mdl">🗑 حذف توضیح</button>
    <button class="ghost" id="mc">بستن</button>
@@ -128,17 +132,18 @@ const prog=s=>s.les.length?Math.round(100*s.les.filter(l=>l.done).length/s.les.l
 const fa=n=>String(n).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
 let armed=null;
 
-/* متن مبحث را با کلمه‌های علامت‌دار [[کلمه]] به دکمهٔ کلیک‌پذیر تبدیل می‌کند */
-function rich(l){
+/* متنِ دارای [[کلمه]] را به دکمه‌های کلیک‌پذیر تبدیل می‌کند (برای متن مبحث و توضیح‌ها) */
+function rt(text,w){
  let out="",last=0,m;const re=/\[\[([^\[\]]+?)\]\]/g;
- while((m=re.exec(l.b))){
-  out+=esc(l.b.slice(last,m.index));
+ while((m=re.exec(text))){
+  out+=esc(text.slice(last,m.index));
   const k=m[1].trim();
-  out+=`<button class="term${l.w[k]?" has":""}" data-a="term" data-w="${esc(k)}">${esc(k)}</button>`;
+  out+=`<button class="term${w[k]?" has":""}" data-a="term" data-w="${esc(k)}">${esc(k)}</button>`;
   last=re.lastIndex;
  }
- return out+esc(l.b.slice(last));
+ return out+esc(text.slice(last));
 }
+function rich(l){return rt(l.b,l.w||{})}
 
 function render(){
  document.getElementById("subs").innerHTML=S.subs.map(s=>`<button class="sub ${s.id===S.sel?"on":""}" style="--c:${s.c}" data-a="pick" data-id="${s.id}"><span class="e">${s.e}</span><span class="n">${esc(s.n)}</span><span class="p">${fa(prog(s))}٪</span></button>`).join("");
@@ -180,33 +185,79 @@ function render(){
  document.getElementById("addLes").onsubmit=e=>{e.preventDefault();const v=ln.value.trim();if(v){s.les.push({id:uid(),t:v,b:"",k:[],w:{},done:false});save();render();document.getElementById("ln").focus()}};
 }
 
-/* ---------- پاپ‌آپ توضیح کلمه ---------- */
+/* ---------- پاپ‌آپ توضیح کلمه (تودرتو) ---------- */
 const md=document.getElementById("md"),mt=document.getElementById("mt"),mx=document.getElementById("mx"),
  mvw=document.getElementById("mvw"),ms=document.getElementById("ms"),me=document.getElementById("me"),
- mdl=document.getElementById("mdl"),mc=document.getElementById("mc");
-let MK=null;
+ mdl=document.getElementById("mdl"),mc=document.getElementById("mc"),mb=document.getElementById("mb"),
+ mw=document.getElementById("mw"),mcrumb=document.getElementById("mcrumb"),mhint=document.getElementById("mhint");
+let MS=[],MK=null;   /* MS = پشتهٔ کلمه‌های بازشده، MK = کلمهٔ فعلی */
 const curLes=()=>{const s=cur();return s&&S.open?s.les.find(x=>x.id===S.open):null};
-function showView(t){mvw.textContent=t;mvw.hidden=false;mx.hidden=true;ms.hidden=true;me.hidden=false}
-function showEdit(t){mx.value=t;mvw.hidden=true;mx.hidden=false;ms.hidden=false;me.hidden=true;mx.focus()}
+const setHint=t=>{mhint.textContent=t;mhint.hidden=!t};
+function chrome(edit){
+ mt.textContent=MK;
+ mcrumb.hidden=MS.length<2;mcrumb.textContent=MS.join("  ‹  ");
+ mb.hidden=MS.length<2;
+ mx.hidden=!edit;ms.hidden=!edit;mw.hidden=!edit;
+ mvw.hidden=edit;me.hidden=edit;
+}
+function showView(){
+ const l=curLes();if(!l)return;
+ mvw.innerHTML=rt(l.w[MK]||"",l.w);chrome(false);
+ setHint("روی کلمه‌های رنگی بزن تا توضیحشون باز بشه. برای علامت‌گذاری کلمهٔ جدید «✏️ ویرایش» رو بزن.");
+}
+function showEdit(){
+ const l=curLes();if(!l)return;
+ mx.value=l.w[MK]||"";chrome(true);
+ setHint("یه کلمه رو توی این متن انتخاب کن و 🔗 رو بزن تا اون هم پاپ‌آپ‌دار بشه.");
+ mx.focus();
+}
+function show(){const l=curLes();if(l&&l.w[MK])showView();else showEdit()}
+function commit(){            /* متن نیمه‌نوشته را نگه می‌دارد */
+ const l=curLes();if(!l||MK==null||mx.hidden)return;
+ const v=mx.value.trim();if(v){l.w[MK]=v;save()}
+}
 function openTerm(k){
  const l=curLes();if(!l)return;
- l.w=l.w||{};MK=k;mt.textContent=k;md.hidden=false;
- const t=l.w[k]||"";
- if(t)showView(t);else showEdit("");
+ l.w=l.w||{};
+ commit();
+ if(MS[MS.length-1]!==k)MS.push(k);
+ MK=k;md.style.setProperty("--c",cur().c);md.hidden=false;show();
 }
-function closeM(){md.hidden=true;MK=null}
+function closeM(){commit();md.hidden=true;MS=[];MK=null;render()}
+function back(){
+ commit();MS.pop();MK=MS.length?MS[MS.length-1]:null;
+ if(MK==null){closeM();return}
+ show();render();
+}
 ms.onclick=()=>{
  const l=curLes();if(!l||MK==null)return;
  const v=mx.value.trim();
- if(v)l.w[MK]=v;else delete l.w[MK];
- save();closeM();render();
+ if(!v){setHint("⚠ اول یه توضیح بنویس.");return}
+ l.w[MK]=v;save();render();showView();
 };
-me.onclick=()=>{const l=curLes();if(l&&MK!=null)showEdit(l.w[MK]||"")};
+me.onclick=showEdit;
+mb.onclick=back;
+mw.onclick=()=>{
+ const l=curLes();if(!l||MK==null)return;
+ const x=mx.selectionStart,y=mx.selectionEnd,raw=mx.value.slice(x,y),w=raw.trim();
+ if(!w){setHint("⚠ اول کلمه یا عبارت رو توی متن انتخاب کن، بعد 🔗 رو بزن.");return}
+ if(/\[\[|\]\]/.test(w)){setHint("⚠ توی انتخابت از قبل علامت [[ ]] هست.");return}
+ if(w===MK){setHint("⚠ این همون کلمهٔ همین پاپ‌آپه.");return}
+ const lead=raw.match(/^\s*/)[0],trail=raw.match(/\s*$/)[0];
+ const nv=mx.value.slice(0,x)+lead+"[["+w+"]]"+trail+mx.value.slice(y);
+ mx.value=nv;l.w[MK]=nv;save();render();
+ openTerm(w);
+};
 mdl.onclick=()=>{
  const l=curLes();if(!l||MK==null)return;
- delete l.w[MK];
- l.b=l.b.split("[["+MK+"]]").join(MK);   /* علامت [[ ]] هم برداشته می‌شه */
- save();closeM();render();
+ const k=MK,un=t=>t.split("[["+k+"]]").join(k);
+ delete l.w[k];
+ l.b=un(l.b);
+ Object.keys(l.w).forEach(q=>{l.w[q]=un(l.w[q])});
+ save();
+ MS.pop();MK=MS.length?MS[MS.length-1]:null;
+ if(MK==null){md.hidden=true;MS=[]}else show();
+ render();
 };
 mc.onclick=closeM;
 md.onclick=e=>{if(e.target===md)closeM()};
