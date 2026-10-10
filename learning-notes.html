@@ -51,12 +51,29 @@ main{padding:22px 24px 60px}
 h3{margin:22px 0 6px}
 .empty{padding:40px 10px;text-align:center;color:var(--mute)}
 .chips{display:none}
+
+/* --- توضیح کلمه‌ها (پاپ‌آپ) --- */
+.tb{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+.hint{font-size:.8rem;color:var(--mute);margin:4px 0 10px}
+.read{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;line-height:2.2;white-space:pre-wrap;min-height:120px;overflow-wrap:anywhere}
+.term{display:inline;padding:0 5px;border-radius:6px;border-bottom:2px dashed var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);font-weight:600;line-height:inherit;text-align:inherit}
+.term.has{border-bottom-style:solid}
+.md{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(10,10,30,.6)}
+.md[hidden]{display:none}
+.sheet{width:min(520px,100%);max-height:85vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px}
+.sheet h4{margin:0 0 10px;font-size:1.15rem;font-weight:800}
+.sheet textarea{width:100%;min-height:160px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;resize:vertical;line-height:2}
+.mview{white-space:pre-wrap;line-height:2;overflow-wrap:anywhere}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+
 @media (max-width:760px){
  .app{display:block}
  aside{border:0;padding:14px}
  .sub{display:inline-flex;width:auto;margin-left:6px}
  .list{white-space:nowrap;overflow-x:auto;padding-bottom:6px}
  main{padding:10px 14px 60px}
+ .md{place-items:end center;padding:0}
+ .sheet{border-radius:20px 20px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -82,11 +99,26 @@ h3{margin:22px 0 6px}
  </aside>
  <main id="main"></main>
 </div>
+
+<div class="md" id="md" hidden>
+ <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <h4 id="mt"></h4>
+  <div class="mview" id="mvw" hidden></div>
+  <textarea id="mx" placeholder="توضیح این کلمه رو بنویس..." hidden></textarea>
+  <div class="row">
+   <button class="btn" id="ms">ذخیره</button>
+   <button class="ghost" id="me" hidden>✏️ ویرایش</button>
+   <button class="ghost" id="mdl">🗑 حذف توضیح</button>
+   <button class="ghost" id="mc">بستن</button>
+  </div>
+ </div>
+</div>
+
 <script>
 const KEY="learn-path-v1",COLORS=["#7ef2c8","#ff6b8a","#ffc857","#6ea8ff","#c792ff","#ff9f6b"],EMO=["📘","🧪","🎭","💻","🧠","🎨","🌍","⚡"];
-let S={subs:[],sel:null,open:null};
+let S={subs:[],sel:null,open:null,read:false};
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
-S.open=null;
+S.open=null;S.read=false;
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const local=()=>{try{localStorage.setItem(KEY,JSON.stringify({subs:S.subs,sel:S.sel}))}catch(e){}};
@@ -96,6 +128,18 @@ const prog=s=>s.les.length?Math.round(100*s.les.filter(l=>l.done).length/s.les.l
 const fa=n=>String(n).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
 let armed=null;
 
+/* متن مبحث را با کلمه‌های علامت‌دار [[کلمه]] به دکمهٔ کلیک‌پذیر تبدیل می‌کند */
+function rich(l){
+ let out="",last=0,m;const re=/\[\[([^\[\]]+?)\]\]/g;
+ while((m=re.exec(l.b))){
+  out+=esc(l.b.slice(last,m.index));
+  const k=m[1].trim();
+  out+=`<button class="term${l.w[k]?" has":""}" data-a="term" data-w="${esc(k)}">${esc(k)}</button>`;
+  last=re.lastIndex;
+ }
+ return out+esc(l.b.slice(last));
+}
+
 function render(){
  document.getElementById("subs").innerHTML=S.subs.map(s=>`<button class="sub ${s.id===S.sel?"on":""}" style="--c:${s.c}" data-a="pick" data-id="${s.id}"><span class="e">${s.e}</span><span class="n">${esc(s.n)}</span><span class="p">${fa(prog(s))}٪</span></button>`).join("");
  const m=document.getElementById("main"),s=cur();
@@ -103,17 +147,26 @@ function render(){
  const c=`style="--c:${s.c}"`;
  if(S.open){
   const l=s.les.find(x=>x.id===S.open);if(!l){S.open=null;return render()}
+  l.w=l.w||{};
   m.innerHTML=`<div class="ed" ${c}>
    <button class="ghost" data-a="back">→ برگشت به ${esc(s.n)}</button>
    <input class="t" id="lt" value="${esc(l.t)}" aria-label="عنوان مبحث">
-   <textarea id="lb" placeholder="اینجا بنویس: چیزی که از گوگل یا کتاب یاد گرفتی...">${esc(l.b)}</textarea>
+   <div class="tb">
+    <button class="ghost" data-a="rd">${S.read?"✏️ ویرایش متن":"📖 حالت خواندن"}</button>
+    ${S.read?"":`<button class="ghost" data-a="wrap">🔗 توضیح برای کلمهٔ انتخاب‌شده</button>`}
+   </div>
+   <p class="hint" id="hint">${S.read?"روی کلمه‌های رنگی بزن تا توضیحشون باز بشه.":"یه کلمه رو توی متن انتخاب کن و دکمهٔ 🔗 رو بزن (یا دستی بنویس: [[کلمه]])."}</p>
+   ${S.read
+    ?`<div class="read" id="lr">${rich(l)||'<span class="meta">هنوز متنی ننوشتی.</span>'}</div>`
+    :`<textarea id="lb" placeholder="اینجا بنویس: چیزی که از گوگل یا کتاب یاد گرفتی...">${esc(l.b)}</textarea>`}
    <h3>✅ چک‌لیست</h3>
    <div>${l.k.map((k,i)=>`<div class="task ${k.d?"d":""}"><input type="checkbox" data-a="tk" data-i="${i}" ${k.d?"checked":""}><span>${esc(k.t)}</span><button class="ghost" data-a="tdel" data-i="${i}" aria-label="حذف">✕</button></div>`).join("")}</div>
    <form class="add" id="addTask"><input id="tn" placeholder="مورد جدید برای چک‌لیست"><button class="btn">افزودن</button></form>
    <p style="margin-top:22px"><button class="btn" data-a="fin">${l.done?"↺ دوباره بازش کن":"✔ این مبحث تموم شد"}</button>
    <button class="ghost" data-a="ldel">${armed==="l"?"مطمئنی؟ دوباره بزن":"🗑 حذف مبحث"}</button></p></div>`;
   document.getElementById("lt").oninput=e=>{l.t=e.target.value;save()};
-  document.getElementById("lb").oninput=e=>{l.b=e.target.value;save()};
+  const lb=document.getElementById("lb");
+  if(lb)lb.oninput=e=>{l.b=e.target.value;save()};
   document.getElementById("addTask").onsubmit=e=>{e.preventDefault();const v=tn.value.trim();if(v){l.k.push({t:v,d:false});save();render();document.getElementById("tn").focus()}};
   return;
  }
@@ -124,15 +177,62 @@ function render(){
   <div class="path">${s.les.length?s.les.map((l,i)=>`<div class="les ${l.done?"done":""}"><div class="node">${l.done?"✓":fa(i+1)}</div>
    <button class="lc" data-a="open" data-id="${l.id}"><b>${esc(l.t)}</b><span class="meta">${fa(l.k.filter(k=>k.d).length)}/${fa(l.k.length)} مورد</span></button>
    <div class="mv"><button data-a="up" data-i="${i}" aria-label="بالا">▲</button><button data-a="dn" data-i="${i}" aria-label="پایین">▼</button></div></div>`).join(""):`<div class="empty">هنوز مبحثی نداری. اولی رو بالا بنویس.</div>`}</div></div>`;
- document.getElementById("addLes").onsubmit=e=>{e.preventDefault();const v=ln.value.trim();if(v){s.les.push({id:uid(),t:v,b:"",k:[],done:false});save();render();document.getElementById("ln").focus()}};
+ document.getElementById("addLes").onsubmit=e=>{e.preventDefault();const v=ln.value.trim();if(v){s.les.push({id:uid(),t:v,b:"",k:[],w:{},done:false});save();render();document.getElementById("ln").focus()}};
+}
+
+/* ---------- پاپ‌آپ توضیح کلمه ---------- */
+const md=document.getElementById("md"),mt=document.getElementById("mt"),mx=document.getElementById("mx"),
+ mvw=document.getElementById("mvw"),ms=document.getElementById("ms"),me=document.getElementById("me"),
+ mdl=document.getElementById("mdl"),mc=document.getElementById("mc");
+let MK=null;
+const curLes=()=>{const s=cur();return s&&S.open?s.les.find(x=>x.id===S.open):null};
+function showView(t){mvw.textContent=t;mvw.hidden=false;mx.hidden=true;ms.hidden=true;me.hidden=false}
+function showEdit(t){mx.value=t;mvw.hidden=true;mx.hidden=false;ms.hidden=false;me.hidden=true;mx.focus()}
+function openTerm(k){
+ const l=curLes();if(!l)return;
+ l.w=l.w||{};MK=k;mt.textContent=k;md.hidden=false;
+ const t=l.w[k]||"";
+ if(t)showView(t);else showEdit("");
+}
+function closeM(){md.hidden=true;MK=null}
+ms.onclick=()=>{
+ const l=curLes();if(!l||MK==null)return;
+ const v=mx.value.trim();
+ if(v)l.w[MK]=v;else delete l.w[MK];
+ save();closeM();render();
+};
+me.onclick=()=>{const l=curLes();if(l&&MK!=null)showEdit(l.w[MK]||"")};
+mdl.onclick=()=>{
+ const l=curLes();if(!l||MK==null)return;
+ delete l.w[MK];
+ l.b=l.b.split("[["+MK+"]]").join(MK);   /* علامت [[ ]] هم برداشته می‌شه */
+ save();closeM();render();
+};
+mc.onclick=closeM;
+md.onclick=e=>{if(e.target===md)closeM()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!md.hidden)closeM()});
+
+/* کلمهٔ انتخاب‌شده در متن را به [[کلمه]] تبدیل می‌کند و پاپ‌آپ را باز می‌کند */
+function wrapSel(l){
+ const t=document.getElementById("lb");if(!t||!l)return;
+ const x=t.selectionStart,y=t.selectionEnd,raw=t.value.slice(x,y),w=raw.trim();
+ const hint=document.getElementById("hint");
+ if(!w){if(hint)hint.textContent="⚠ اول کلمه یا عبارت رو توی متن انتخاب کن، بعد این دکمه رو بزن.";return}
+ if(/\[\[|\]\]/.test(w)){if(hint)hint.textContent="⚠ توی انتخابت از قبل علامت [[ ]] هست.";return}
+ const lead=raw.match(/^\s*/)[0],trail=raw.match(/\s*$/)[0];
+ l.b=t.value.slice(0,x)+lead+"[["+w+"]]"+trail+t.value.slice(y);
+ t.value=l.b;save();openTerm(w);
 }
 
 document.addEventListener("click",e=>{
  const b=e.target.closest("[data-a]");if(!b)return;
  const a=b.dataset.a,s=cur(),i=+b.dataset.i;
  const l=s&&S.open?s.les.find(x=>x.id===S.open):null;
+ if(a==="rd"){S.read=!S.read;render();return}
+ if(a==="term"){openTerm(b.dataset.w);return}
+ if(a==="wrap"){wrapSel(l);return}
  if(a==="pick"){S.sel=b.dataset.id;S.open=null;armed=null}
- else if(a==="open")S.open=b.dataset.id;
+ else if(a==="open"){S.open=b.dataset.id;S.read=false}
  else if(a==="back"){S.open=null;armed=null}
  else if(a==="tk")l.k[i].d=!l.k[i].d;
  else if(a==="tdel")l.k.splice(i,1);
